@@ -89,7 +89,6 @@ void Aeroplane::UpdateMatrices(void)
 	mRotZ = XMMatrixRotationZ(XMConvertToRadians(m_v4PropRot.z));
 
 	m_mPropWorldMatrix = mRotX * mRotY * mRotZ * XMMatrixTranslation(m_v4PropOff.x, m_v4PropOff.y, m_v4PropOff.z);
-
 	m_mPropWorldMatrix = m_mPropWorldMatrix * m_mWorldMatrix;
 
 	// Calculate m_mTurretWorldMatrix for propeller based on Euler rotation angles and position data.
@@ -116,9 +115,22 @@ void Aeroplane::UpdateMatrices(void)
 
 	// Calculate m_mCameraWorldMatrix for camera based on Euler rotation angles and position data.
 
+	mRotX = XMMatrixRotationX(XMConvertToRadians(m_v4CamRot.x));
+	mRotY = XMMatrixRotationY(XMConvertToRadians(m_v4CamRot.y));
+	mRotZ = XMMatrixRotationZ(XMConvertToRadians(m_v4CamRot.z));
+
+	m_mCamWorldMatrix = mRotX * mRotY * mRotZ * XMMatrixTranslation(m_v4CamOff.x, m_v4CamOff.y, m_v4CamOff.z);
+
+	m_mCamWorldMatrix = m_mCamWorldMatrix * m_mWorldMatrix;
+	
+	XMVECTOR vScale, vRot; 
+
+	XMMatrixDecompose(&vScale, &vRot, &m_vCamWorldPos, m_mCamWorldMatrix);
+
 	// [Skip this step first time through] Switch between parenting the camera to the plane (without X and Z rotations) and the gun based on m_bGunCam
 
 	// Get the camera's world position (m_vCamWorldPos) out of m_mCameraWorldMatrix
+
 }
 
 void Aeroplane::Update(bool bPlayerControl)
