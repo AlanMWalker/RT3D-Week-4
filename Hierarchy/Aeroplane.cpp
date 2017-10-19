@@ -170,6 +170,7 @@ void Aeroplane::Update(bool bPlayerControl)
 			{
 				m_v4Rot.z += 0.5f;
 			}
+			m_v4Rot.y -= 0.5f;
 		}
 
 		// Step 4: Make the plane yaw and roll right when you press "P" and return to level when released
@@ -181,6 +182,7 @@ void Aeroplane::Update(bool bPlayerControl)
 			{
 				m_v4Rot.z -= 0.5f;
 			}
+			m_v4Rot.y += 0.5f;
 		}
 
 	} // End of if player control
