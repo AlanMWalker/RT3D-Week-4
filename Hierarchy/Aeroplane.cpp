@@ -10,10 +10,10 @@
 #include "Aeroplane.h"
 
 // Initialise static class variables.
-CommonMesh* Aeroplane::s_pPlaneMesh = NULL;
-CommonMesh* Aeroplane::s_pPropMesh = NULL;
-CommonMesh* Aeroplane::s_pTurretMesh = NULL;
-CommonMesh* Aeroplane::s_pGunMesh = NULL;
+CommonMesh* Aeroplane::s_pPlaneMesh = nullptr;
+CommonMesh* Aeroplane::s_pPropMesh = nullptr;
+CommonMesh* Aeroplane::s_pTurretMesh = nullptr;
+CommonMesh* Aeroplane::s_pGunMesh = nullptr;
 
 bool Aeroplane::s_bResourcesReady = false;
 
@@ -70,14 +70,11 @@ void Aeroplane::UpdateMatrices(void)
 
 	mTrans = XMMatrixTranslation(m_v4Pos.x, m_v4Pos.y, m_v4Pos.z);
 
-	m_mWorldMatrix = mRotX * mRotY * mRotZ * mTrans;
-
-	//Also calculate mPlaneCameraRot which ignores rotations in Z and X for the camera to parent to
-	mPlaneCameraRot = XMMatrixRotationX(0.0f) * mRotY * XMMatrixRotationZ(0.0f) * mTrans;
+	m_mWorldMatrix = mRotZ * mRotX * mRotY * mTrans; // swapped rotation order
 
 	//Get the forward vector out of the world matrix and put it in m_vForwardVector
 	m_vForwardVector = XMVector4Transform(XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f), m_mWorldMatrix);
-	
+
 	// Calculate m_mPropWorldMatrix for propeller based on Euler rotation angles and position data.
 	// Parent the propeller to the plane
 	{
@@ -113,6 +110,17 @@ void Aeroplane::UpdateMatrices(void)
 		m_mGunWorldMatrix = m_mGunWorldMatrix * m_mTurretWorldMatrix;
 	}
 
+	//Switch between parenting the camera to the plane (without X and Z rotations) and the gun based on m_bGunCam
+	if (!m_bGunCam)
+	{
+		//Also calculate mPlaneCameraRot which ignores rotations in Z and X for the camera to parent to
+		mPlaneCameraRot = XMMatrixRotationX(0.0f) * XMMatrixRotationY(XMConvertToRadians(m_v4Rot.y)) * XMMatrixRotationZ(0.0f) * XMMatrixTranslation(m_v4Pos.x, m_v4Pos.y, m_v4Pos.z);
+	}
+	else
+	{
+		mPlaneCameraRot = m_mGunWorldMatrix;
+	}
+
 	// Calculate m_mCameraWorldMatrix for camera based on Euler rotation angles and position data.
 	{
 		mRotX = XMMatrixRotationX(XMConvertToRadians(m_v4CamRot.x));
@@ -124,7 +132,6 @@ void Aeroplane::UpdateMatrices(void)
 		m_mCamWorldMatrix = m_mCamWorldMatrix * mPlaneCameraRot;
 		XMMatrixDecompose(&vScale, &vRot, &m_vCamWorldPos, m_mCamWorldMatrix);
 	}
-	// [Skip this step first time through] Switch between parenting the camera to the plane (without X and Z rotations) and the gun based on m_bGunCam
 
 }
 
@@ -133,18 +140,48 @@ void Aeroplane::Update(bool bPlayerControl)
 	// DON'T DO THIS UNTIL YOu HAVE COMPLETED THE FUNCTION ABOVE
 	if (bPlayerControl)
 	{
-		// Step 1: Make the plane pitch upwards when you press "Q" and return to level when released
+		// Make the plane pitch upwards when you press "A" and return to level when released
 		// Maximum pitch = 60 degrees
 
-		// Step 2: Make the plane pitch downwards when you press "A" and return to level when released
+		if (Application::s_pApp->IsKeyPressed('A'))
+		{
+			if (m_v4Rot.x > -60.0f)
+			{
+				m_v4Rot.x -= 0.5f;
+			}
+		}
+
+		// Make the plane pitch downwards when you press "Q" and return to level when released
 		// You can also impose a take off speed of 0.5 if you like
 		// Minimum pitch = -60 degrees
-
+		if (Application::s_pApp->IsKeyPressed('Q'))
+		{
+			if (m_v4Rot.x < 60.0f)
+			{
+				m_v4Rot.x += 0.5f;
+			}
+		}
 		// Step 3: Make the plane yaw and roll left when you press "O" and return to level when released
 		// Maximum roll = 20 degrees
 
+		if (Application::s_pApp->IsKeyPressed('O'))
+		{
+			if (m_v4Rot.z < 20.0f)
+			{
+				m_v4Rot.z += 0.5f;
+			}
+		}
+
 		// Step 4: Make the plane yaw and roll right when you press "P" and return to level when released
 		// Minimum roll = -20 degrees
+
+		if (Application::s_pApp->IsKeyPressed('P'))
+		{
+			if (m_v4Rot.z > -20.0f)
+			{
+				m_v4Rot.z -= 0.5f;
+			}
+		}
 
 	} // End of if player control
 
@@ -179,10 +216,26 @@ void Aeroplane::LoadResources(void)
 
 void Aeroplane::ReleaseResources(void)
 {
-	delete s_pPlaneMesh;
-	delete s_pPropMesh;
-	delete s_pTurretMesh;
-	delete s_pGunMesh;
+	if (s_pPlaneMesh)
+	{
+		delete s_pPlaneMesh;
+		s_pPlaneMesh = nullptr;
+	}
+	if (s_pPropMesh)
+	{
+		delete s_pPropMesh;
+		s_pPropMesh = nullptr;
+	}
+	if (s_pTurretMesh)
+	{
+		delete s_pTurretMesh;
+		s_pTurretMesh = nullptr;
+	}
+	if (s_pGunMesh)
+	{
+		delete s_pGunMesh;
+		s_pGunMesh = nullptr;
+	}
 }
 
 void Aeroplane::Draw(void)
