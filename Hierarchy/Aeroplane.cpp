@@ -114,6 +114,7 @@ void Aeroplane::UpdateMatrices(void)
 	if (!m_bGunCam)
 	{
 		//Also calculate mPlaneCameraRot which ignores rotations in Z and X for the camera to parent to
+		// 0 deg X * angle on Y * 0 deg Z * planes translation
 		mPlaneCameraRot = XMMatrixRotationX(0.0f) * XMMatrixRotationY(XMConvertToRadians(m_v4Rot.y)) * XMMatrixRotationZ(0.0f) * XMMatrixTranslation(m_v4Pos.x, m_v4Pos.y, m_v4Pos.z);
 	}
 	else
@@ -191,7 +192,9 @@ void Aeroplane::Update(bool bPlayerControl)
 	m_fSpeed += 0.001f;
 
 	if (m_fSpeed > 1)
+	{
 		m_fSpeed = 1;
+	}
 
 	// Rotate propeller and turret
 	m_v4PropRot.z += 100 * m_fSpeed;
