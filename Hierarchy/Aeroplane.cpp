@@ -188,6 +188,18 @@ void Aeroplane::Update(bool bPlayerControl)
 
 	} // End of if player control
 
+	const float angleReturnDelta = 0.15f;
+
+	if (m_v4Rot.x != 0.0f)
+	{
+		m_v4Rot.x -= (m_v4Rot.x / fabs(m_v4Rot.x)) * angleReturnDelta;
+	}
+
+	if (m_v4Rot.z != 0.0f)
+	{
+		m_v4Rot.z -= (m_v4Rot.z / fabs(m_v4Rot.z)) * angleReturnDelta;
+	}
+
 	// Apply a forward thrust and limit to a maximum speed of 1
 	m_fSpeed += 0.001f;
 
